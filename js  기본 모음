@@ -1,0 +1,226 @@
+
+해당 게시글에서는 JS개발자 라면 꼭 알아야 할 기본 지식에 대해 정리해보도록 해보겠습니다.
+
+# let, const, var의 차이
+
+
+### 1) let, const / var 변수 선언 방식 차이
+- let과 const의 경우 한번 선언된 변수의 이름은 다시 선언하는 것이 불가능하다. 하지만 var의 경우 한번 선언된 변수의 이름또한 다시 선언 및 재할당 하는 것이 가능하다. (아래 코드 참고)
+
+```javascript
+const test = "test1";
+const test = "test2"; // error
+
+let test2 = "test1";
+let test2 = "test2"; //error
+
+var test3 = "test1";
+var test3 = "test2"; // 정상 작동
+```
+### 2) let, const / var 호이스팅 차이
+- 호이스팅이란, var 선언문 및 함수 선언문 들은 js에서 코드를 실행할때에 해당 선언 들이 최상위로 올려져 해석되는 js의 코드 해석 순서이다.
+
+아래에 코드를 보면 알 수 있지만 var로 선언되 변수의 경우 변수가 선언되는 구문보다 위에 구문에서 변수를 가져와 사용해도 오류가 나지 않는다. 하지만 let, const의 경우 선언 이전에 변수를 사용할 경우 오류가 난다.
+
+```javascript
+console.log(test1); // 테스트 입니다.
+var test1 = "테스트 입니다."
+
+console.log(test2); // error (const도 동일)
+let test1 = "테스트";
+```
+**i) 자세히 알아보자**
+위에서 var와 let, const의 차이점은 호이스팅이라 설명을 했다. 그렇다면 let, const는 호이스팅이 일어나지 않는 것일까? 그것은 아니다.
+변수는 총 세가지 단계를 거쳐 만들어진다.
+- 선언 단계 - 변수 실행 컨텍스트에 변수 객체를 등록한다.
+- 초기화 단계 - 변수 객체에 등록된 변수를 위한 공간을 메모리에 확보한다.
+- 할당 단계 - undefined로 초기화된 변수에 실제 값을 할당한다.
+---
+여기서 var선언문에 경우 선언 단계와 초기화 단계가 한번에 이루어 지기 때문에 호이스팅이 일어나면 선언 단계와 초기화 단계가 한번에 이루어진 상태에서 최상위 단계로 올라간다. 그렇기 때문에 변수 선언 구문보다 변수 사용 구문이 위에 있어도 에러가 나지 않는다. 
+하지만 let, const는 선언 단계와 초기화 단계가 나뉘어져 있기 때문에 호이스팅이 일어나도 선언 단계만 거치고 초기화 단계를 거치지 않는다. 그렇기 때문에 변수 선언 구문보다 사용 구문이 위에 있으면 에러가 나오는 것이다.
+
+# JS 비동기/동기란?
+
+비동기: 비동기란 앞서 실행한 코드의 응답과 관계 없이 바로 다음 코드를 실행하는 방식
+
+동기: 앞서 실행한 코드의 응답을 받은 후 다음 코드를 순차적으로 실행하는 방식
+
+## JS는 비동기/동기 중 어떤 언어인가?
+
+JS는 싱글 스레드 언어이기에 동기적으로 실행되는 언어이다. 하지만 web api, callback queue, event loop와 같은 개념들 덕분에 비동기(멀티 스레드 언어)처럼 실행될 수 있다.
+
+## JS에서 비동기 함수가 처리되는 과정
+
+![](https://images.velog.io/images/alskt0419/post/59da35bf-d676-4dc9-af9e-2516d0856137/js.png)
+출처: http://sculove.github.io/blog/2018/01/18/javascriptflow/
+
+비동기 함수가 실행되는 과정을 알아보기 전에 위 사진에 나오는 요소들을 정리 해 보겠다.
+
+### JS 엔진(v8)
+
+
+Memory Heap: 코드상에서 선언된 변수, 함수 등이 메모리 힙에 할당 된다.
+
+Call Stack: 코드가 실행되면 call stack에 차례로 쌓이게 된다. 이때 코드가 처리 되는 순서는 stack(선입후출)방식으로 진행된다.
+
+### Web API
+
+web api는 브라우저와 관련된 여러 api를 사용할 수 있게 해준다. (DOM, AJAX ...) 때문에 해당 API들은 런타임 환경이 브라우저인 경우에만 호출할 수 있다.
+(단, setTimeout은 브라우저 없이 호출 가능)
+
+Web API는 비동기 함수의 콜백 함수를 callback queue로 넣어 주는 역할 또한 한다.
+
+### Callback Queue
+
+callback queue는 web api로 부터 전달 받은 비동기 함수들을 저장하는 역할을 한다. 또한 queue알고리즘으로 작동하기에 선입선출을 따른다.
+
+callback queue는 총 세가지로 분류할 수 있다.
+
+- Microtask queue
+- Task queue
+- Animation Frames
+
+callback queue는 web api로 부터 받은 비동기 함수의 콜백들을 받게 되는데 이때 어떤 비동기 함수를 호출했느냐에 따라 callback queue에 저장되는 종류가 나뉘게 된다. 예를 들어 setTimeout은 Task queue에 저장되고 Promise의 then() 함수는 Microtask queue에 저장된다.
+
+이러한 개념을 알아야 하는 이유는 브라우저 마다 **Event loop**에서 callback queue에 총 3가지로 분류되어 저장된 함수를 call stack으로 전달하는 우선순위가 다르기 때문이다.
+
+크롬 기준 우선순위: Microtask queue => Animation Frames => Task queue
+
+### Event Loop
+
+event loop는 비동기 함수가 호출 되었을때 call stack이 비어 있는지를 확인 하며 비어있다면 callback queue에 쌓여있는 비동기 함수들의 콜백을 차례로 전달에 주는 역할을 한다.
+
+여기서 call stack이 비어있다면 넣어 준다는 뜻은 비동기 함수를 처리하기 전에 call stack에 쌓인 일반 함수들을 모두 처리해 준 후에 비동기 함수를 처리 해준다는 의미이다.
+
+예로 아래 코드를 실행해 보자
+```javascript
+setTimeout(() => {
+    console.log("1");
+}, 0)
+
+console.log("2");
+
+console.log("3");
+```
+
+setTimeout의 두번째 인자가 0이라는 것은 기다리지 않고 바로 실행되어야 한다. 
+
+하지만 실행해보면 순서는 2, 3, 1 순서로 로그가 찍히게 되는데 이는 앞서 설명했듯이 event loop가 call stack이 전부 비어지고(비동기 함수 외에 코드를 전부 처리하고)
+callback queue에 담긴 함수들을 call stack으로 넘겨주기 때문이다.
+
+# This란?
+this는 함수를 호출한 객체값을 가르킨다.
+
+예를 들어 아래와 같은 코드가 있다고 가정하자.
+
+```javascript
+
+const obj = {
+	test: function test() {
+    	console.log(this); 
+    }
+}
+
+obj.test(); // obj객체를 가르킴
+```
+
+코드를 보면 알 수 있듯 this는 메서드를 호출한 객체를 가르킨다.
+
+여기서 obj 객체에 감싸지 않고 test함수를 호출하면 this는 어떤 값을 가르킬까? 
+```javascript
+
+function test() {
+	console.log(this);
+}
+
+test(); // window
+```
+this는 window를 가르키게 된다. 기본적으로 this는 window 객체를 가르키고 있으며(브라우저 환경에서만) 다음과 같이 함수가 호출되는 위치에 따라 this의 값이 바뀌게 된다.
+
+this의 값이 바뀌는 경우는 확인해보자.
+
+- 1) 객체 메서드에서의 호출 
+처음 예시를 들어준 코드와 같은 경우처럼 객체 메서드에서 this는 window객체에서 호출된 함수를 감싸고 있는 obj객체를 가르키도록 값이 바뀐다.
+
+- 2) 이벤트리스너에서 this를 호출할 경우
+이벤트리스너에서 this를 호출할 경우에는 this가 이벤트 함수를 가르키게 된다.
+- 3) 함수를 바인딩 했을때
+아래 예제를 보자
+```javascript
+
+const obj = {
+  test: function test1() {
+  	 function test2() {
+            console.log(this);
+    }
+    test2();
+  }
+}
+
+obj.test(); //window가 로그에 찍힌다.
+```
+위 코드를 실행 시키면 obj 객체를 가르키지 않고 window를 가르키게 된다.
+test2함수는 해당 함수를 감싸는 객체가 없기 때문에 객체 메서드가 아닌 일반 함수로 인식되어 this가 기본적으로 가르키는 window객체 값을 갖게 되는 것이다. 만약 test2함수에서 obj 객체를 참조하고 싶다면 별도로 바인딩 작업이 필요하다.
+
+```javascript
+
+const obj = {
+  test: function test1() {
+    const that = this;
+  	 function test2() {
+            console.log(that);
+    }
+    test2();
+  }
+}
+
+obj.test(); //obj객체가 로그에 찍힌다.
+```
+
+위 예제는 간단히 표현하기 위함이고 bind와 관련된 함수도 많으니 찾아보면 좋을듯 하다.
+
+# Function과 Arrow Function의 차이는?
+
+일반 함수와 화살표 함수의 차이는 this와 연관이 있다.
+
+앞서 설명한 this에서 아래 코드는 window 객체를 가르킨다고 했다.
+
+```javascript
+
+const obj = {
+  test: function test1() {
+  	 function test2() {
+            console.log(this);
+    }
+    test1();
+  }
+}
+
+obj.test(); //window가 로그에 찍힌다.
+```
+
+하지만 여기서 test2함수를 화살표 함수로 바꿀 경우 this는 자동으로 바인딩 되어 obj객체를 가르키게 된다.
+
+```javascript
+
+const obj = {
+  test: function test1() {
+  	 const test2 = () => {
+     	console.log(this);
+     }
+    test2();
+  }
+}
+
+obj.test(); //obj객체가 로그에 찍힌다.
+```
+
+**즉 일반 함수의 경우 호출되는 위치에 따라 this가 동적으로 바뀌기 때문에 바인딩 작업이 별도로 필요하지만 화살표 함수는 바로 상위 스코프가 가르키는 this값과 화살표 함수내에 this값이 같다는 것이다.**
+
+이 외에도 일반 함수의 경우 생성자 함수로써 사용이 가능하지만 화살표 함수는 생성자 함수로써 사용할 수 없다.
+
+화살표 함수는 prototype이 없기 때문이다.
+
+
+
+
